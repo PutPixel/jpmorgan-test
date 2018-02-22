@@ -172,7 +172,15 @@ public class MessageProcessorTest {
 	public void after50MessagesLogPausedMode() {
 		IntStream.range(1, 61).forEach(it -> {
 			boolean messageProcessed = processor.processMessage(new SingleSaleMessage(P1, p("10")));
-			if (it > 50) {
+			if (it == 60) {
+				assertThat(messageProcessed, is(false));
+				String lastMessage = getMessage();
+				int total = 10 * 50;
+				assertThat(lastMessage, is("Service on pause, messages won't be processed\r\n"
+						+ "Product: P1, sales: 50, total: " + total + "\r\n"
+						+ "--------------------------------------\r\n"
+						+ "All products total: " + total + "\r\n"));
+			} else if (it > 50) {
 				assertThat(messageProcessed, is(false));
 				String lastMessage = getMessage();
 				assertThat(lastMessage, is("Service on pause, messages won't be processed\r\n"));
@@ -182,7 +190,6 @@ public class MessageProcessorTest {
 			baos.reset();
 		});
 	}
-
 
 	@Test
 	public void multipleProductCase() {

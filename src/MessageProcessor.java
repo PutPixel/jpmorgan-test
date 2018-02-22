@@ -26,26 +26,32 @@ public class MessageProcessor {
 	}
 
 	public boolean processMessage(Message msg) {
-		history.add(msg);
-		if (paused) {
-			out.reportServiceOnPause();
-			return false;
+		try {
+			history.add(msg);
+			if (paused) {
+				out.reportServiceOnPause();
+				reportSaleStatsIfNeeded();
+				return false;
+			}
+
+			processMessageInternal(msg);
+
+			reportSaleStatsIfNeeded();
+
+			if (messageCount == 50) {
+				out.reportSwitchToPauseMode();
+				paused = true;
+			}
+			return true;
+		} finally {
+			messageCount++;
 		}
+	}
 
-		processMessageInternal(msg);
-
+	private void reportSaleStatsIfNeeded() {
 		if (messageCount % 10 == 0) {
 			out.reportSalesStats(snapshot.values());
 		}
-
-		if (messageCount == 50) {
-			out.reportSwitchToPauseMode();
-			paused = true;
-		}
-
-		messageCount++;
-
-		return true;
 	}
 
 	private void processMessageInternal(Message msg) {
